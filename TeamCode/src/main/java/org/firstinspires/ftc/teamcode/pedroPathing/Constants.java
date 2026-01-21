@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
@@ -14,7 +15,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+@Configurable
 public class Constants {
+    public static double forwardPodY = -5.875;
+    public static double strafePodX = 1.977;
+
     public static MecanumConstants driveConstants = new MecanumConstants()
             .xVelocity(75.92047936146655)
             .yVelocity(62.10357185423843)
@@ -29,8 +34,8 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(5.875)
-            .strafePodX(1.375)
+            .forwardPodY(forwardPodY)
+            .strafePodX(strafePodX)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
@@ -40,7 +45,7 @@ public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .forwardZeroPowerAcceleration(-34.0831146410967)
             .lateralZeroPowerAcceleration(-70.54084727284749)
-            .translationalPIDFCoefficients(new PIDFCoefficients(.15, 0, 0.013, 0.02))
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.15, 0, 0.013, 0.02))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.01, 0, 0.0001, 0.6, 0.01))
             .headingPIDFCoefficients(new PIDFCoefficients(1, 0,0.04, 0.02))
             .centripetalScaling(0.001)
