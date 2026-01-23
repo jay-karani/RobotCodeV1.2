@@ -5,9 +5,7 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
@@ -27,7 +25,7 @@ import org.firstinspires.ftc.teamcode.subsystems.TurretSubsys;
 import org.firstinspires.ftc.teamcode.subsystems.UpdatedLocalizerSubsys;
 
 @Autonomous
-public class blueFrontAuto extends CommandOpMode {
+public class blueFront12Auto extends CommandOpMode {
     private Follower follower;
     private TelemetryData telemetryData = new TelemetryData(telemetry);
     private UpdatedLocalizerSubsys updatedLocalizer;
@@ -45,15 +43,21 @@ public class blueFrontAuto extends CommandOpMode {
     public final Pose firstLine = new Pose(48, 84, Math.toRadians(160));
     public final Pose intakeFirst = new Pose(16, 84, Math.toRadians(160));
     public final Pose cheefFirstWall = new Pose(14,88, Math.toRadians(180));
+    public final Pose emptyGate = new Pose(13, 77, Math.toRadians(90));
     public final Pose secondLine = new Pose(48, 64.5, Math.toRadians(200));
-    public final Pose intakeSecond = new Pose(9, 64.5, Math.toRadians(200));
+    public final Pose intakeSecond = new Pose(10, 64.5, Math.toRadians(200));
     public final Pose secondTwist = new Pose (9, 58, Math.toRadians(180));
+    public final Pose thirdLine = new Pose(48, 40.5, Math.toRadians(200));
+    public final Pose intakeThird = new Pose(10, 40.5, Math.toRadians(200));
+    public final Pose thirdTwist = new Pose(9, 34, Math.toRadians(180));
+    public final Pose parkPose = new Pose(40, 76, Math.toRadians(90));
 
-    private PathChain shootFirst, toFirstLine, pickFirstLine, cheefFirst, shootSecond,
-            driveToSecond, intakeSecondChain, twistSecond, shootSecondLine;
+    private PathChain shootPreload, toFirstLine, pickFirstLine, cheefFirst, goEmptyGate, shootFirstLine,
+            driveToSecond, intakeSecondChain, twistSecond, shootSecondLine,
+    driveToThird, intakeThirdChain, twistThird, shootThirdLine, park;
 
     public void buildPaths(){
-        shootFirst = follower.pathBuilder().addPath(new BezierLine(startPose, shootPose))
+        shootPreload = follower.pathBuilder().addPath(new BezierLine(startPose, shootPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
                 .build();
         toFirstLine = follower.pathBuilder().addPath(new BezierLine(shootPose, firstLine))
@@ -65,7 +69,10 @@ public class blueFrontAuto extends CommandOpMode {
         cheefFirst = follower.pathBuilder().addPath(new BezierLine(intakeFirst, cheefFirstWall))
                 .setLinearHeadingInterpolation(intakeFirst.getHeading(), cheefFirstWall.getHeading())
                 .build();
-        shootSecond = follower.pathBuilder().addPath(new BezierLine(intakeFirst, shootPose))
+        goEmptyGate = follower.pathBuilder().addPath(new BezierLine(cheefFirstWall, emptyGate))
+                .setLinearHeadingInterpolation(cheefFirstWall.getHeading(), emptyGate.getHeading())
+                .build();
+        shootFirstLine = follower.pathBuilder().addPath(new BezierLine(emptyGate, shootPose))
                 .setLinearHeadingInterpolation(intakeFirst.getHeading(), shootPose.getHeading())
                 .build();
         driveToSecond = follower.pathBuilder().addPath(new BezierLine(shootPose, secondLine))
@@ -80,15 +87,27 @@ public class blueFrontAuto extends CommandOpMode {
         shootSecondLine = follower.pathBuilder().addPath(new BezierCurve(secondTwist, new Pose(47, 52),shootPose))
                 .setLinearHeadingInterpolation(secondTwist.getHeading(), shootPose.getHeading())
                 .build();
+        driveToThird = follower.pathBuilder().addPath(new BezierLine(shootPose, thirdLine))
+                .setLinearHeadingInterpolation(shootPose.getHeading(), thirdLine.getHeading())
+                .build();
+        intakeThirdChain = follower.pathBuilder().addPath(new BezierLine(thirdLine, intakeThird))
+                .setLinearHeadingInterpolation(thirdLine.getHeading(), intakeThird.getHeading())
+                .build();
+        twistThird = follower.pathBuilder().addPath(new BezierLine(intakeThird, thirdTwist))
+                .setLinearHeadingInterpolation(intakeThird.getHeading(), thirdTwist.getHeading())
+                .build();
+        shootThirdLine = follower.pathBuilder().addPath(new BezierCurve(thirdTwist, new Pose(44, 44),shootPose))
+                .setLinearHeadingInterpolation(thirdTwist.getHeading(), shootPose.getHeading())
+                .build();
+        park = follower.pathBuilder().addPath(new BezierLine(shootPose, parkPose))
+                .setLinearHeadingInterpolation(shootPose.getHeading(), parkPose.getHeading())
+                .build();
     }
 
     private RunCommand updatePoses = new RunCommand(() -> updatedLocalizer.updatePoses());
     private RunCommand updateDistance = new RunCommand(()-> distanceToGoal = updatedLocalizer.getDistance());
     private RunCommand trackTurret = new RunCommand(() -> turret.turretTrack(updatedLocalizer.getFTCPose()));
     private RunCommand runHood = new RunCommand(()-> hood.runHoodRegression(distanceToGoal));
-    //private InstantCommand runIntake = new InstantCommand(()-> intake.runIntake(1));
-    //private InstantCommand stopIntake = new InstantCommand(()-> intake.runIntake(0));
-    //private InstantCommand toggleShooter = new InstantCommand(()-> shooterOn = !shooterOn);
 
     /*
             new WaitCommand(750), runIntake, new WaitCommand(750), stopIntake,
@@ -124,42 +143,63 @@ public class blueFrontAuto extends CommandOpMode {
 
         buildPaths();
 
+        /* shooting order
+            new InstantCommand(()-> shooterOn = !shooterOn),
+                        new WaitCommand(650),
+                        new InstantCommand(()-> intake.runIntake(0.8)),
+                        new WaitCommand(1500),
+                        new InstantCommand(()-> intake.runIntake(0)),
+                        new InstantCommand(()-> shooterOn = !shooterOn)
+         */
+
         schedule(
                 new RunCommand(()-> follower.update()), updatePoses, updateDistance,
                 trackTurret, runHood, runShooter,
                 new SequentialCommandGroup(
                         new InstantCommand(()-> shooterOn = !shooterOn),
-                        new FollowPathCommand(follower, shootFirst, true),
-                        new WaitCommand(750), new InstantCommand(()-> intake.runIntake(0.8)), new WaitCommand(1500),
+                        new FollowPathCommand(follower, shootPreload, true),
+                        new WaitCommand(650), new InstantCommand(()-> intake.runIntake(0.8)), new WaitCommand(1500),
                         new InstantCommand(()-> intake.runIntake(0)),
                         new InstantCommand(()-> shooterOn = !shooterOn),
-                        new FollowPathCommand(follower, toFirstLine),
-                        new InstantCommand(()-> intake.runIntake(1)),
-                        new FollowPathCommand(follower, pickFirstLine),
-                        new FollowPathCommand(follower, cheefFirst),
-                        new WaitCommand(300),
-                        new InstantCommand(()-> intake.runIntake(0)),
-                        new FollowPathCommand(follower, shootSecond, true),
-                        new InstantCommand(()-> shooterOn = !shooterOn),
-                        new WaitCommand(750),
+
+                        new FollowPathCommand(follower, toFirstLine), new InstantCommand(()-> intake.runIntake(1)),
+                        new FollowPathCommand(follower, pickFirstLine), new FollowPathCommand(follower, cheefFirst),
+                        new WaitCommand(300), new InstantCommand(()-> intake.runIntake(0)),
+                        new FollowPathCommand(follower, goEmptyGate, true),
+                        new WaitCommand(1000),
+                        new ParallelCommandGroup(new FollowPathCommand(follower, shootFirstLine), new SequentialCommandGroup(
+                                new WaitCommand(100), new InstantCommand(()-> shooterOn = !shooterOn)
+                        )),
+                        new WaitCommand(650),
                         new InstantCommand(()-> intake.runIntake(0.8)),
                         new WaitCommand(1500),
                         new InstantCommand(()-> intake.runIntake(0)),
                         new InstantCommand(()-> shooterOn = !shooterOn),
-                        new FollowPathCommand(follower, driveToSecond),
-                        new InstantCommand(()-> intake.runIntake(1)),
-                        new FollowPathCommand(follower, intakeSecondChain),
-                        new FollowPathCommand(follower, twistSecond),
-                        new WaitCommand(500),
-                        new InstantCommand(()-> intake.runIntake(0)),
-                        new FollowPathCommand(follower, shootSecondLine, true),
-                        new InstantCommand(()-> shooterOn = !shooterOn),
-                        new WaitCommand(750),
+
+                        new FollowPathCommand(follower, driveToSecond), new InstantCommand(()-> intake.runIntake(1)),
+                        new FollowPathCommand(follower, intakeSecondChain), new FollowPathCommand(follower, twistSecond),
+                        new WaitCommand(300), new InstantCommand(()-> intake.runIntake(0)),
+                        new ParallelCommandGroup(new FollowPathCommand(follower, shootSecondLine), new SequentialCommandGroup(
+                                new WaitCommand(300), new InstantCommand(()-> shooterOn = !shooterOn)
+                        )),
+                        new WaitCommand(650),
                         new InstantCommand(()-> intake.runIntake(0.8)),
                         new WaitCommand(1500),
                         new InstantCommand(()-> intake.runIntake(0)),
                         new InstantCommand(()-> shooterOn = !shooterOn),
-                        new FollowPathCommand(follower, driveToSecond, true)
+
+                        new FollowPathCommand(follower, driveToThird), new InstantCommand(()-> intake.runIntake(1)),
+                        new FollowPathCommand(follower, intakeThirdChain), new FollowPathCommand(follower, twistThird),
+                        new WaitCommand(300), new InstantCommand(()-> intake.runIntake(0)),
+                        new ParallelCommandGroup(new FollowPathCommand(follower, shootThirdLine), new SequentialCommandGroup(
+                                new WaitCommand(400), new InstantCommand(()-> shooterOn = !shooterOn)
+                        )),
+                        new WaitCommand(650),
+                        new InstantCommand(()-> intake.runIntake(0.8)),
+                        new WaitCommand(1500),
+                        new InstantCommand(()-> intake.runIntake(0)),
+                        new InstantCommand(()-> shooterOn = !shooterOn),
+                        new FollowPathCommand(follower, park, true)
                 )
         );
     }

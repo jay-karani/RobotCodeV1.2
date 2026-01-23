@@ -43,13 +43,12 @@ public class RobotConstants {
     public static final boolean leftFlywheelInverted = true;
 
     public static final String turretName = "turretMotor";
-    public static final Motor.GoBILDA turretMotType = Motor.GoBILDA.RPM_1150;
+    public static final Motor.GoBILDA turretMotType = Motor.GoBILDA.RPM_312;
     public static boolean turretReversed = true;
-
-    public static double turretTolerance = 3;
-    public static double turretLeftMax = -90; //degrees
-    public static double turretRightMax = 90;
-    public static double turretPCoeff = 0.018, turretDCoeff = 0;
+    public static double turretTolerance = 0;
+    public static double turretLeftMax = -105; //degrees
+    public static double turretRightMax = 105;
+    public static double turretPCoeff = 0.009, turretDCoeff = 0.0004;
     public static final double turretRatio = 2/1;
     public static final double turretTicksPerDegree = (turretMotType.getCPR() * turretRatio) / 360;
 
