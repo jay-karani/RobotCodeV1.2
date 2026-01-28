@@ -19,12 +19,13 @@ public class TurretSubsys extends SubsystemBase {
     private Motor turretMotor;
     private PDController pdController;
     private double goalX = RobotConstants.goalX, goalY;
+    private double offset = 0;
 
     public TurretSubsys(HardwareMap hwMap){
         this.turretMotor = new Motor(hwMap, RobotConstants.turretName, RobotConstants.turretMotType)
                 .setInverted(RobotConstants.turretReversed);
         turretMotor.setRunMode(Motor.RunMode.RawPower);
-        turretMotor.stopAndResetEncoder();
+        //turretMotor.stopAndResetEncoder();
 
         if (RobotConstants.robotTeam == RobotConstants.Team.RED) {goalY = RobotConstants.redGoalY;}
         else {goalY = RobotConstants.blueGoalY;}
@@ -44,7 +45,7 @@ public class TurretSubsys extends SubsystemBase {
     public void turretTrack(Pose2D robotPose){
         double robotX = robotPose.getX(DistanceUnit.INCH);
         double robotY = robotPose.getY(DistanceUnit.INCH);
-        double robotHeading = robotPose.getHeading(AngleUnit.DEGREES);
+        double robotHeading = robotPose.getHeading(AngleUnit.DEGREES) + offset;
 
         double dx = goalX - robotX, dy = goalY - robotY;
         double targetGlobalAngle = Math.toDegrees(Math.atan2(dy, dx));
@@ -52,6 +53,10 @@ public class TurretSubsys extends SubsystemBase {
         while (turretTarget > 180) turretTarget -= 360;
         while (turretTarget < -180) turretTarget += 360;
         turretToAngle(turretTarget);
+    }
+
+    public void resetTurretEncoder(){
+        turretMotor.stopAndResetEncoder();
     }
 
     public void updateConstants(){
@@ -62,5 +67,9 @@ public class TurretSubsys extends SubsystemBase {
 
     public Motor getTurretMotor(){
         return turretMotor;
+    }
+
+    public void changeOffset(double change){
+        offset += change;
     }
 }

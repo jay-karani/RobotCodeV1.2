@@ -25,7 +25,7 @@ import org.firstinspires.ftc.teamcode.subsystems.TurretSubsys;
 import org.firstinspires.ftc.teamcode.subsystems.UpdatedLocalizerSubsys;
 
 @Autonomous
-public class blueFront12Auto extends CommandOpMode {
+public class redFront12Auto extends CommandOpMode {
     private Follower follower;
     private TelemetryData telemetryData = new TelemetryData(telemetry);
     private UpdatedLocalizerSubsys updatedLocalizer;
@@ -38,19 +38,19 @@ public class blueFront12Auto extends CommandOpMode {
     public double distanceToGoal = 0;
     public boolean shooterOn = false;
 
-    public final Pose startPose = RobotConstants.blueFrontStart;
-    public final Pose shootPose = new Pose(43, 104, Math.toRadians(180));
-    public final Pose firstLine = new Pose(48, 84, Math.toRadians(160));
-    public final Pose intakeFirst = new Pose(19, 84, Math.toRadians(160));
-    public final Pose cheefFirstWall = new Pose(18,88, Math.toRadians(180));
-    public final Pose emptyGate = new Pose(15, 77, Math.toRadians(90));
-    public final Pose secondLine = new Pose(48, 64.5, Math.toRadians(200));
-    public final Pose intakeSecond = new Pose(10.8, 64.5, Math.toRadians(200));
-    public final Pose secondTwist = new Pose (9.8, 58, Math.toRadians(180));
-    public final Pose thirdLine = new Pose(48, 42.5, Math.toRadians(200));
-    public final Pose intakeThird = new Pose(11.3, 42.5, Math.toRadians(200));
-    public final Pose thirdTwist = new Pose(10.3, 34, Math.toRadians(180));
-    public final Pose parkPose = new Pose(40, 76, Math.toRadians(90));
+    public final Pose startPose = RobotConstants.redFrontStart;
+    public final Pose shootPose = new Pose(101, 104, Math.toRadians(0));
+    public final Pose firstLine = new Pose(96, 84, Math.toRadians(20));
+    public final Pose intakeFirst = new Pose(125, 84, Math.toRadians(20));
+    public final Pose cheefFirstWall = new Pose(126,88, Math.toRadians(0));
+    public final Pose emptyGate = new Pose(127.5, 77, Math.toRadians(90));
+    public final Pose secondLine = new Pose(96, 65, Math.toRadians(340));
+    public final Pose intakeSecond = new Pose(132.2, 65, Math.toRadians(340));
+    public final Pose secondTwist = new Pose (133.2, 59, Math.toRadians(0));
+    public final Pose thirdLine = new Pose(96, 42.5, Math.toRadians(340));
+    public final Pose intakeThird = new Pose(131.7, 42.5, Math.toRadians(340));
+    public final Pose thirdTwist = new Pose(132.7, 34, Math.toRadians(0));
+    public final Pose parkPose = new Pose(104, 76, Math.toRadians(90));
 
     private PathChain shootPreload, toFirstLine, pickFirstLine, cheefFirst, goEmptyGate, shootFirstLine,
             driveToSecond, intakeSecondChain, twistSecond, shootSecondLine,
@@ -70,7 +70,7 @@ public class blueFront12Auto extends CommandOpMode {
                 .setLinearHeadingInterpolation(intakeFirst.getHeading(), cheefFirstWall.getHeading())
                 .build();
         goEmptyGate = follower.pathBuilder().addPath(new BezierCurve(cheefFirstWall,
-                        new Pose(30, 80),emptyGate))
+                        new Pose(110, 83),emptyGate))
                 .setLinearHeadingInterpolation(cheefFirstWall.getHeading(), emptyGate.getHeading())
                 .build();
         shootFirstLine = follower.pathBuilder().addPath(new BezierLine(emptyGate, shootPose))
@@ -85,7 +85,7 @@ public class blueFront12Auto extends CommandOpMode {
         twistSecond = follower.pathBuilder().addPath(new BezierLine(intakeSecond, secondTwist))
                 .setLinearHeadingInterpolation(intakeSecond.getHeading(), secondTwist.getHeading())
                 .build();
-        shootSecondLine = follower.pathBuilder().addPath(new BezierCurve(secondTwist, new Pose(47, 52),shootPose))
+        shootSecondLine = follower.pathBuilder().addPath(new BezierCurve(secondTwist, new Pose(97, 52),shootPose))
                 .setLinearHeadingInterpolation(secondTwist.getHeading(), shootPose.getHeading())
                 .build();
         driveToThird = follower.pathBuilder().addPath(new BezierLine(shootPose, thirdLine))
@@ -97,7 +97,7 @@ public class blueFront12Auto extends CommandOpMode {
         twistThird = follower.pathBuilder().addPath(new BezierLine(intakeThird, thirdTwist))
                 .setLinearHeadingInterpolation(intakeThird.getHeading(), thirdTwist.getHeading())
                 .build();
-        shootThirdLine = follower.pathBuilder().addPath(new BezierCurve(thirdTwist, new Pose(44, 44),shootPose))
+        shootThirdLine = follower.pathBuilder().addPath(new BezierCurve(thirdTwist, new Pose(100, 44),shootPose))
                 .setLinearHeadingInterpolation(thirdTwist.getHeading(), shootPose.getHeading())
                 .build();
         park = follower.pathBuilder().addPath(new BezierLine(shootPose, parkPose))
@@ -130,7 +130,7 @@ public class blueFront12Auto extends CommandOpMode {
     public void initialize() {
         super.reset();
         RobotConstants.cachedRobotPose = new Pose(0, 0, 0);
-        RobotConstants.robotTeam = RobotConstants.Team.BLUE;
+        RobotConstants.robotTeam = RobotConstants.Team.RED;
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
         follower.update();
@@ -174,7 +174,7 @@ public class blueFront12Auto extends CommandOpMode {
                         new ParallelCommandGroup(new FollowPathCommand(follower, shootFirstLine), new SequentialCommandGroup(
                                 new WaitCommand(100), new InstantCommand(()-> shooterOn = !shooterOn)
                         )),
-                        new WaitCommand(500),
+                        new WaitCommand(650),
                         new InstantCommand(()-> intake.runIntake(0.8)),
                         new WaitCommand(1500),
                         new InstantCommand(()-> intake.runIntake(0)),
@@ -186,7 +186,7 @@ public class blueFront12Auto extends CommandOpMode {
                         new ParallelCommandGroup(new FollowPathCommand(follower, shootSecondLine), new SequentialCommandGroup(
                                 new WaitCommand(300), new InstantCommand(()-> shooterOn = !shooterOn)
                         )),
-                        new WaitCommand(500),
+                        new WaitCommand(650),
                         new InstantCommand(()-> intake.runIntake(0.8)),
                         new WaitCommand(1500),
                         new InstantCommand(()-> intake.runIntake(0)),
@@ -198,7 +198,7 @@ public class blueFront12Auto extends CommandOpMode {
                         new ParallelCommandGroup(new FollowPathCommand(follower, shootThirdLine), new SequentialCommandGroup(
                                 new WaitCommand(400), new InstantCommand(()-> shooterOn = !shooterOn)
                         )),
-                        new WaitCommand(500),
+                        new WaitCommand(650),
                         new InstantCommand(()-> intake.runIntake(0.8)),
                         new WaitCommand(1500),
                         new InstantCommand(()-> intake.runIntake(0)),

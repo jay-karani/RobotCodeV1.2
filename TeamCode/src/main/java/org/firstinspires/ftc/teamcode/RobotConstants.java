@@ -22,7 +22,8 @@ public class RobotConstants {
     }
 
     public static Pose blueFrontStart = new Pose(31.5, 135.5, Math.toRadians(270));
-    public static Pose endPose = new Pose(0, 0, 0);
+    public static Pose redFrontStart = blueFrontStart.mirror();
+    public static Pose cachedRobotPose = new Pose(0, 0, 0);
     public static Team robotTeam = Team.RED;
 
     public static final String limelightName = "limelight";
@@ -53,8 +54,8 @@ public class RobotConstants {
     public static final double turretTicksPerDegree = (turretMotType.getCPR() * turretRatio) / 360;
 
     public static final double goalX = -72;
-    public static final double blueGoalY = -72;
-    public static final double redGoalY = 72;
+    public static final double blueGoalY = -62;
+    public static final double redGoalY = 62;
 
     public static final String intakeName = "intakeMotor";
     public static boolean intakeReversed = true;
